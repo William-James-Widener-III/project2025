@@ -23,7 +23,7 @@ jobs:
           # Download Godot 4.3 .NET Linux build
           wget -q https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_mono_linux_x86_64.zip
           unzip -q Godot_v4.3-stable_mono_linux_x86_64.zip
-          chmod +x Godot_v4.3-stable_mono_linux_x86_64/
+          chmod +x Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64
           
           # Download .NET export templates
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable.mono
@@ -36,7 +36,7 @@ jobs:
       - name: Export Server
         run: |
           mkdir -p build
-          ./Godot_v4.3-stable_mono_linux_x86_64/
+          ./Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64 \
             --headless --path game-server \
             --export-release "Linux/X11" ../build/server.x86_64
 
