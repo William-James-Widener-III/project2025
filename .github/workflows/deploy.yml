@@ -36,7 +36,7 @@ jobs:
       - name: Export Server
         run: |
           mkdir -p build
-          ./Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64 \
+          ./Godot_v4.3-stable_mono_linux_x86_64/
             --headless --path game-server \
             --export-release "Linux/X11" ../build/server.x86_64
 
