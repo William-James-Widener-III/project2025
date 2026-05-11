@@ -18,13 +18,16 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Download Godot 4.3 Mono
+      - name: Download Godot 4.3 .NET
         run: |
-          wget -q https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_mono_linux_x86_64.zip
+          # Download Godot 4.3 .NET Linux build from GitHub releases
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_mono_linux_x86_64.zip
           unzip -q Godot_v4.3-stable_mono_linux_x86_64.zip
           chmod +x Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64
+          
+          # Download .NET export templates
           mkdir -p ~/.local/share/godot/export_templates/4.3.stable.mono
-          wget -q https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_mono_export_templates.tpz
+          wget -q https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_mono_export_templates.tpz
           unzip -q Godot_v4.3-stable_mono_export_templates.tpz -d ~/.local/share/godot/export_templates/4.3.stable.mono/
 
       - name: Build Shared Library
