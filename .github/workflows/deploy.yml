@@ -1,0 +1,66 @@
+name: Build & Deploy Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download Godot 4.3 Mono
+        run: |
+          wget -q https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_mono_linux_x86_64.zip
+          unzip -q Godot_v4.3-stable_mono_linux_x86_64.zip
+          chmod +x Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64
+          mkdir -p ~/.local/share/godot/export_templates/4.3.stable.mono
+          wget -q https://downloads.tuxfamily.org/godotengine/4.3/Godot_v4.3-stable_mono_export_templates.tpz
+          unzip -q Godot_v4.3-stable_mono_export_templates.tpz -d ~/.local/share/godot/export_templates/4.3.stable.mono/
+
+      - name: Build Shared Library
+        run: dotnet build shared/Shared.csproj
+
+      - name: Export Server
+        run: |
+          mkdir -p build
+          ./Godot_v4.3-stable_mono_linux_x86_64/Godot_v4.3-stable_mono_linux_x86_64             --headless --path game-server             --export-release "Linux/X11" ../build/server.x86_64
+
+      - name: Package Build
+        run: |
+          TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+          mkdir -p "server-${TIMESTAMP}"
+          cp build/server.x86_64 "server-${TIMESTAMP}/"
+          cp -r game-server/*.pck "server-${TIMESTAMP}/" 2>/dev/null || true
+          tar czf "server-${TIMESTAMP}.tar.gz" "server-${TIMESTAMP}"
+          echo "TIMESTAMP=${TIMESTAMP}" >> $GITHUB_ENV
+
+      - name: Deploy to Droplet
+        env:
+          DROPLET_IP: ${{ secrets.DROPLET_IP }}
+          DROPLET_USER: ${{ secrets.DROPLET_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no             "server-${{ env.TIMESTAMP }}.tar.gz"             "${DROPLET_USER}@${DROPLET_IP}:~/game-server/releases/"
+
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no             "${DROPLET_USER}@${DROPLET_IP}"             "cd ~/game-server/releases && tar xzf server-${{ env.TIMESTAMP }}.tar.gz && cd ~/game-server && rm -f active/server && ln -s ../releases/server-${{ env.TIMESTAMP}} active/server && sudo systemctl restart game-server@7777"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-build
+          path: server-*.tar.gz
+          retention-days: 30

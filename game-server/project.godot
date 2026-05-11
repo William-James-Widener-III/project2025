@@ -1,0 +1,20 @@
+; Engine Configuration File
+; Godot version: 4.3
+
+[application]
+config/name="GameServer"
+config/features=PackedStringArray("4.3", "C#")
+run/main_scene="res://src/GameServer.tscn"
+config/icon="res://icon.svg"
+
+[dotnet]
+project/assembly_name="GameServer"
+
+[display]
+window/subwindows/embed_subwindows=false
+window/size/initial_position=Absolute
+window/size/initial_position_type=Absolute
+window/size/initial_screen=0
+
+[autoload]
+GameStateManager="*res://src/GameStateManager.cs"
